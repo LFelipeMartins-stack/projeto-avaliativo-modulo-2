@@ -220,7 +220,7 @@ if pagina == "🏠 Visão Geral (Home)":
             insidetextfont=dict(color="#ffffff", size=11, family="sans-serif")
         )
         aplicar_layout_executivo(fig1)
-        st.plotly_chart(fig1, use_container_width=True)
+        st.plotly_chart(fig1, width="stretch")
         
     with colB:
         df_loc = fato.merge(dim_localidade, on="sk_localidade")
@@ -241,7 +241,7 @@ if pagina == "🏠 Visão Geral (Home)":
         fig2.update_layout(coloraxis_showscale=False, yaxis={'categoryorder': 'total ascending'})
         fig2.update_xaxes(range=[0, max_v * 1.25])
         aplicar_layout_executivo(fig2)
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, width="stretch")
 
 # --- PÁGINA 1: ECONOMIA GLOBAL ---
 elif pagina == "1️⃣ Economia Global":
@@ -292,7 +292,7 @@ elif pagina == "1️⃣ Economia Global":
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     aplicar_layout_executivo(fig_temp)
-    st.plotly_chart(fig_temp, use_container_width=True)
+    st.plotly_chart(fig_temp, width="stretch")
 
     if filtro_perfil == "Todos":
         st.info(f"**Conclusão da Controladoria:** A Administração Federal obteve economia nominal de R$ {economia_rs/1e6:,.2f} milhões ({economia_pct:.2f}% de deságio) sobre a base comparável ({pct_comp:.2f}% dos itens), atestando a eficácia dos certames concorrenciais.")
@@ -332,7 +332,7 @@ elif pagina == "2️⃣ Fornecedores e Risco":
         fig.update_layout(yaxis={'categoryorder': 'total ascending'}, coloraxis_showscale=False)
         fig.update_xaxes(range=[0, max_v * 1.20])
         aplicar_layout_executivo(fig)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     st.warning(f"**Risco de Concentração:** Apenas 10 empresas detêm {concentracao_top10:.2f}% dos recursos homologados (R$ {top_forn['valor_total_homologado'].sum()/1e9:.2f} Bi). Recomenda-se acompanhamento de auditoria contra risco de dependência e concentração.")
 
@@ -371,7 +371,7 @@ elif pagina == "3️⃣ Eficácia por Modalidade":
             insidetextfont=dict(color="#ffffff", size=11, family="sans-serif")
         )
         aplicar_layout_executivo(fig_mod_pie)
-        st.plotly_chart(fig_mod_pie, use_container_width=True)
+        st.plotly_chart(fig_mod_pie, width="stretch")
         
     with c2:
         val_mod = res_mod.dropna(subset=["desagio"]).sort_values("desagio")
@@ -391,7 +391,7 @@ elif pagina == "3️⃣ Eficácia por Modalidade":
         fig_mod_bar.update_layout(yaxis={'categoryorder': 'total ascending'}, showlegend=False)
         fig_mod_bar.update_xaxes(range=[0, max_d * 1.20])
         aplicar_layout_executivo(fig_mod_bar)
-        st.plotly_chart(fig_mod_bar, use_container_width=True)
+        st.plotly_chart(fig_mod_bar, width="stretch")
 
     st.info("**Conclusão da Controladoria:** A Concorrência Eletrônica absorve 58,43% do montante total homologado, porém o Pregão Eletrônico atua como a ferramenta de maior eficácia concorrencial (24,02% de deságio). O Credenciamento opera com deságio nulo em conformidade com sua regra de teto de remuneração fixa.")
 
@@ -429,7 +429,7 @@ elif pagina == "4️⃣ Tempo de Ciclo":
     fig_ciclo.update_layout(yaxis={'categoryorder': 'total ascending'}, coloraxis_showscale=False)
     fig_ciclo.update_xaxes(range=[0, max_m * 1.20])
     aplicar_layout_executivo(fig_ciclo)
-    st.plotly_chart(fig_ciclo, use_container_width=True)
+    st.plotly_chart(fig_ciclo, width="stretch")
 
     st.info("**Conclusão da Controladoria:** A duração média federal situa-se em 48,1 dias; todavia, instituições de ensino superior e conselhos de fiscalização superam 200 dias de tramitação interna, apontando gargalos processuais na fase preparatória dos editais.")
 
@@ -467,7 +467,7 @@ elif pagina == "5️⃣ Distribuição Regional":
         fig_r1.update_layout(coloraxis_showscale=False, yaxis={'categoryorder': 'total ascending'})
         fig_r1.update_xaxes(range=[0, max_rv * 1.25])
         aplicar_layout_executivo(fig_r1)
-        st.plotly_chart(fig_r1, use_container_width=True)
+        st.plotly_chart(fig_r1, width="stretch")
         
     with c2:
         fig_r2 = px.bar(
@@ -485,7 +485,7 @@ elif pagina == "5️⃣ Distribuição Regional":
         fig_r2.update_layout(coloraxis_showscale=False, yaxis={'categoryorder': 'total ascending'})
         fig_r2.update_xaxes(range=[0, max_rd * 1.25])
         aplicar_layout_executivo(fig_r2)
-        st.plotly_chart(fig_r2, use_container_width=True)
+        st.plotly_chart(fig_r2, width="stretch")
 
     # 2. Visão por Unidade Federativa (UF)
     st.markdown("### Top 10 Estados (UFs) em Despesa Homologada")
@@ -517,7 +517,7 @@ elif pagina == "5️⃣ Distribuição Regional":
     fig_uf.update_layout(height=430)
     fig_uf.update_yaxes(range=[0, max_uf * 1.20])
     aplicar_layout_executivo(fig_uf)
-    st.plotly_chart(fig_uf, use_container_width=True)
+    st.plotly_chart(fig_uf, width="stretch")
 
     st.info("**Conclusão da Controladoria:** O Distrito Federal centraliza 38,98% do orçamento federal em virtude das compras dos ministérios e órgãos superiores. Em termos de economicidade, a Região Norte alcançou o maior índice de desconto do país (21,43%).")
 
@@ -549,7 +549,7 @@ elif pagina == "6️⃣ Perfil dos Gastos":
             insidetextfont=dict(color="#ffffff", size=11, family="sans-serif")
         )
         aplicar_layout_executivo(fig_p1)
-        st.plotly_chart(fig_p1, use_container_width=True)
+        st.plotly_chart(fig_p1, width="stretch")
         
     with c2:
         fig_p2 = px.bar(
@@ -566,6 +566,6 @@ elif pagina == "6️⃣ Perfil dos Gastos":
         fig_p2.update_layout(showlegend=False, yaxis_title="Ticket Médio (R$)")
         fig_p2.update_yaxes(range=[0, max_t * 1.20])
         aplicar_layout_executivo(fig_p2)
-        st.plotly_chart(fig_p2, use_container_width=True)
+        st.plotly_chart(fig_p2, width="stretch")
 
     st.info("**Conclusão da Controladoria:** Obras e Engenharia concentram a maior parte do volume financeiro (60,8% do montante; ticket médio de R$ 5,06 mi), ao passo que a aquisição de Bens lidera em volume físico de contratações (54% dos itens da fato).")
