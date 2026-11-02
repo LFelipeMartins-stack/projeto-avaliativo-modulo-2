@@ -88,30 +88,51 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =============================================================================
-# 2. CONEXÃO E CARGA DE DADOS
+# 2. CONEXÃO E CARGA DE DADOS (HÍBRIDO COM FALLBACK)
 # =============================================================================
 @st.cache_resource
 def obter_conexao():
-    url = (
-        f"postgresql+psycopg2://{config.PG_CONFIG['user']}:{config.PG_CONFIG['password']}@"
-        f"{config.PG_CONFIG['host']}:{config.PG_CONFIG['port']}/{config.PG_DATABASE}"
-    )
-    return create_engine(url)
+    try:
+        url = (
+            f"postgresql+psycopg2://{config.PG_CONFIG['user']}:{config.PG_CONFIG['password']}@"
+            f"{config.PG_CONFIG['host']}:{config.PG_CONFIG['port']}/{config.PG_DATABASE}"
+        )
+        return create_engine(url)
+    except Exception:
+        return None
 
 engine = obter_conexao()
 
 @st.cache_data
 def carregar_dados():
-    f = pd.read_sql("SELECT * FROM fato_item_contratado", engine)
+    modo_origem = "PostgreSQL"
+    try:
+        # 1. Tentativa primária: Banco de Dados Relacional
+        if engine is None:
+            raise ConnectionError("Engine PostgreSQL não inicializada.")
+        
+        f = pd.read_sql("SELECT * FROM fato_item_contratado", engine)
+        o = pd.read_sql("SELECT * FROM dim_orgao", engine)
+        fo = pd.read_sql("SELECT * FROM dim_fornecedor", engine)
+        m = pd.read_sql("SELECT * FROM dim_modalidade", engine)
+        l = pd.read_sql("SELECT * FROM dim_localidade", engine)
+    except Exception:
+        # 2. Fallback de alta disponibilidade: Base processada em data/processed/
+        modo_origem = "CSVs Processados (Fallback)"
+        dir_proc = Path(__file__).resolve().parent.parent / "data" / "processed"
+        f = pd.read_csv(dir_proc / "fato_item_contratado.csv")
+        o = pd.read_csv(dir_proc / "dim_orgao.csv")
+        fo = pd.read_csv(dir_proc / "dim_fornecedor.csv")
+        m = pd.read_csv(dir_proc / "dim_modalidade.csv")
+        l = pd.read_csv(dir_proc / "dim_localidade.csv")
+    
+    # Padronização temporal
     f["data_publicacao"] = pd.to_datetime(f["data_publicacao"])
     f["ano_mes"] = f["data_publicacao"].dt.to_period("M").astype(str)
-    o = pd.read_sql("SELECT * FROM dim_orgao", engine)
-    fo = pd.read_sql("SELECT * FROM dim_fornecedor", engine)
-    m = pd.read_sql("SELECT * FROM dim_modalidade", engine)
-    l = pd.read_sql("SELECT * FROM dim_localidade", engine)
-    return f, o, fo, m, l
+    
+    return f, o, fo, m, l, modo_origem
 
-fato_bruta, dim_orgao, dim_fornecedor, dim_modalidade, dim_localidade = carregar_dados()
+fato_bruta, dim_orgao, dim_fornecedor, dim_modalidade, dim_localidade, modo_origem = carregar_dados()
 
 # =============================================================================
 # 3. BARRA LATERAL: NAVEGAÇÃO E FILTROS DINÂMICOS
@@ -119,6 +140,13 @@ fato_bruta, dim_orgao, dim_fornecedor, dim_modalidade, dim_localidade = carregar
 with st.sidebar:
     st.markdown("## 🏛️ Controladoria Geral")
     st.caption("Inteligência em Compras Públicas • PNCP 2025")
+    
+    # Telemetria da fonte de dados (Produção vs Fallback)
+    if "PostgreSQL" in modo_origem:
+        st.success("● Fonte: PostgreSQL 16 (Online)", icon="🗄️")
+    else:
+        st.warning("● Fonte: Base Processada (Fallback)", icon="📂")
+        
     st.markdown("---")
     
     st.subheader("Navegação Executiva")
