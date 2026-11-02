@@ -1,4 +1,23 @@
-# Python 3.10+
-pandas>=2.2                    # limpeza e transformacao
-psycopg2-binary>=2.9           # conexao e carga no PostgreSQL
-pytest>=8.0                    # testes das funcoes de limpeza
+# =============================================================================
+# Pipeline de Dados e Engenharia (ETL)
+# =============================================================================
+pandas>=2.2.0               # Processamento, higienização e modelação tabular
+python-dotenv>=1.0.0        # Gestão segura de variáveis de ambiente (.env)
+
+# =============================================================================
+# Base de Dados Relacional (PostgreSQL)
+# =============================================================================
+psycopg2-binary>=2.9.0      # Driver PostgreSQL para ingestão em lote (execute_values)
+SQLAlchemy>=2.0.0           # Conector/Engine relacional consumido pelo Streamlit
+
+# =============================================================================
+# Camada Visual e Dashboard Executivo
+# =============================================================================
+streamlit>=1.40.0           # Aplicação web e interface da Sala de Situação
+plotly>=5.24.0              # Gráficos interativos com suporte a temas e tooltips
+matplotlib>=3.9.0           # Geração automatizada do cronograma visual (docs/img)
+
+# =============================================================================
+# Testes e Qualidade de Código
+# =============================================================================
+pytest>=8.0.0               # Validação e testes unitários das rotinas de limpeza
