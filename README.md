@@ -248,7 +248,7 @@ Acesse a aplicação no navegador em: `http://localhost:8501`
 
 ## 📹 Apresentação Técnica e Defesa do Projeto (Sprint Review)
 
-* **Link da Apresentação (Google Drive com Acesso Público):** [INSERIR_LINK_AQUI]
+* **Link da Apresentação (Google Drive com Acesso Público):** [https://drive.google.com/file/d/1CFfeEvDySWkMHTr-5Xly3Rm3HUH-3C8H/view?usp=drive_link]
 
 ### Propostas de Evolução Futura
 1. **Orquestração Automatizada com Apache Airflow:** Construção de DAGs para ingestão diária e incremental conectada à API oficial do PNCP, com alertas de monitoramento via webhook.
