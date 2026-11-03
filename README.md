@@ -4,11 +4,12 @@
 ![Python](https://img.shields.io/badge/Python-3.12%2B-blue)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.40%2B-FF4B4B)
+![Plotly](https://img.shields.io/badge/Plotly-5.24%2B-informational)
 ![OS](https://img.shields.io/badge/Ambiente-Linux%20Zorin%20OS%2018-black)
 
 Esteira analítica ponta a ponta (*End-to-End*) desenvolvida para auditar compras e contratações públicas federais disponibilizadas pelo **Portal Nacional de Contratações Públicas (PNCP)** ao longo de todo o exercício de 2025.
 
-O projeto resolve inconsistências estruturais e anomalias originadas em sistemas legados, aplica as regras contábeis e de controle externo da Controladoria Geral, estrutura os dados em modelagem dimensional *Star Schema* no PostgreSQL e disponibiliza uma Sala de Situação executiva interativa com foco em usabilidade, contraste e inteligência visual.
+O projeto resolve inconsistências estruturais e anomalias originadas em sistemas legados, aplica as regras contábeis e de controle externo da Controladoria Geral, estrutura os dados em modelagem dimensional *Star Schema* no PostgreSQL e disponibiliza uma Sala de Situação executiva interativa com foco em usabilidade, resiliência de ambiente, contraste e inteligência visual.
 
 ---
 
@@ -52,19 +53,19 @@ A governança do projeto foi conduzida por meio de uma abordagem híbrida **Scru
 
 * **Sprint 6: Dashboard Analítico Executivo (Semana 7)**
   * **Objetivo:** Projetar e construir a aplicação executiva web interativa em Streamlit e Plotly.
-  * **Tarefas Entregues:** Sala de Situação consolidada (Home) e 6 painéis temáticos; menu lateral retrátil; filtro dinâmico reativo por Perfil de Gasto recalculando métricas e conclusões; Design Tokens de cores unificados; compatibilidade nativa de contraste para Dark e Light Mode.
+  * **Tarefas Entregues:** Sala de Situação consolidada (Home) e 6 painéis temáticos; menu lateral retrátil; filtro dinâmico reativo por Perfil de Gasto recalculando métricas e conclusões; Design Tokens de cores unificados; compatibilidade nativa de contraste para Dark e Light Mode; eliminação de avisos de depreciação de tela (`width='stretch'`).
   * **Definition of Done (DoD):** Interface executiva funcional conectada ao PostgreSQL via `psycopg2`, sem truncamento de rótulos e com paridade de dados completa.
 
 * **Sprint 7: Documentação, Reprodutibilidade e Vídeo (Semana 8)**
   * **Objetivo:** Consolidar a documentação no `README.md`, arte gráfica do cronograma e gravação da defesa técnica executiva.
-  * **Tarefas Entregues:** Geração do cronograma visual `docs/img/sprints.png` sem colisões; guia passo a passo de reprodução do pipeline; sincronização do quadro Kanban no Notion; gravação e publicação da Sprint Review em vídeo.
+  * **Tarefas Entregues:** Geração do cronograma visual `docs/img/sprints.png` sem colisões e com períodos; implementação de redundância de alta disponibilidade (Fallback automático PostgreSQL $\rightarrow$ CSVs processados); sincronização do quadro Kanban no Notion; gravação e publicação da Sprint Review em vídeo.
   * **Definition of Done (DoD):** Repositório público no GitHub com histórico de commits estruturado e link público de vídeo anexado.
 
 ---
 
 ## 🏗️ Arquitetura da Esteira e Engenharia de Dados
 
-A esteira adota uma arquitetura modular em três camadas desacopladas com dupla barreira de integridade:
+A esteira adota uma arquitetura modular em três camadas desacopladas com barreira dupla de integridade e mecanismo de alta disponibilidade:
 
 ```text
 [Dados Brutos: data/raw/]
@@ -88,12 +89,19 @@ A esteira adota uma arquitetura modular em três camadas desacopladas com dupla 
              ▼                                           ▼
 [Consultas SQL Analíticas]                    [Dashboard Executivo Web]
   (sql/02_perguntas.sql)                        (powerbi/app.py - Streamlit)
+                                                         │
+                                             ┌───────────┴───────────┐
+                                             ▼                       ▼
+                                      [PostgreSQL 16]     [Fallback: CSVs]
+                                      (Fonte Primária)    (Alta Disponibilidade)
 ```
 
-### Decisão de Arquitetura: Camada Visual em Ambiente Unix Nativo
+### Decisão de Arquitetura: Camada Visual em Ambiente Unix Nativo & Alta Disponibilidade
 O projeto foi desenvolvido sob ambiente nativo **Linux Zorin OS 18**. Para contornar limitações e instabilidades de renderização de emuladores (como Wine/WebView2 para Power BI Desktop) e priorizar padrões corporativos de nuvem e servidores Unix, a camada visual foi implementada como uma aplicação web corporativa em **Streamlit + Plotly**.
 
-O painel conecta-se via pool de conexões com o PostgreSQL local (`psycopg2`), consome a modelagem Star Schema e reproduz com exatidão as 15 medidas de negócio, filtros interativos com reatividade de estado e storytelling contextualizado.
+O painel foi equipado com uma rotina de **Fallback Híbrido Automático**:
+1. **Origem Primária (PostgreSQL):** Consulta diretamente a camada relacional via pool de conexões `SQLAlchemy/psycopg2`.
+2. **Origem de Contingência (CSVs Processados):** Se o serviço local do PostgreSQL não estiver ativo no momento da avaliação, a aplicação redireciona a carga automaticamente para os dados estruturados em `data/processed/`, exibindo o status de contingência no menu lateral sem interromper a execução nem quebrar a interatividade dos filtros e gráficos.
 
 ---
 
@@ -205,19 +213,18 @@ cd "projeto-avaliativo-modulo-2"
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Instalar dependências da esteira analítica
+# Instalar todas as dependências do ecossistema
 pip install -r requirements.txt
-pip install streamlit plotly psycopg2-binary sqlalchemy matplotlib
 ```
 
-### 2. Configurar o Banco de Dados PostgreSQL
+### 2. Configurar Credenciais do Banco (Opcional caso use Fallback)
 Crie o arquivo `.env` a partir do modelo e configure suas credenciais locais do PostgreSQL:
 ```bash
 cp .env.example .env
 nano .env
 ```
 
-### 3. Executar o Pipeline de Higienização e Carga
+### 3. Execução da Esteira Completa (ETL e Ingestão)
 ```bash
 # 1. Executa autoteste de higienização atômica (54/54 testes unitários)
 python -m src.limpeza
@@ -229,11 +236,13 @@ python -m src.montar_tabelas
 python -m src.carregar
 ```
 
-### 4. Inicializar o Dashboard Executivo
+### 4. Inicialização da Sala de Situação Executiva
 ```bash
 python -m streamlit run powerbi/app.py
 ```
 Acesse a aplicação no navegador em: `http://localhost:8501`
+
+*(Nota: Caso o PostgreSQL não esteja rodando localmente, o dashboard inicializará automaticamente consumindo os arquivos higienizados em `data/processed/`, com telemetria indicada no menu lateral).*
 
 ---
 
